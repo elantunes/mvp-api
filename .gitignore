@@ -1,0 +1,11 @@
+__pycache__/
+
+database/
+
+env/
+
+log/
+
+model/__pycache__/
+
+schemas/__pycache__/
