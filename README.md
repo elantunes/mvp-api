@@ -30,8 +30,3 @@ automaticamente após uma mudança no código fonte.
 ```
 
 Abra o [http://localhost:5000](http://localhost:5000) no navegador para verificar o status da API em execução.
-
-## Como alimentar a base de dados
-
-Execute os scripts que estão localizados na pasta **database-scripts**.
-
