@@ -15,10 +15,9 @@ class AluguelGetSchema(BaseModel):
 class AluguelPostSchema(BaseModel):
     """ Define como um novo aluguel a ser inserido deve ser representado.
     """
+    id_veiculo: int
     data_inicio: datetime
     data_termino: datetime
-    valor: float
-    veiculo: str
 
 
 class AluguelPutSchema(BaseModel):
