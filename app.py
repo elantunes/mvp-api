@@ -166,20 +166,18 @@ def add_aluguel(form: AluguelPostSchema):
 @app.put('/aluguel/<int:id>',
          tags=[alugueis_tag],
          responses={"200": AluguelViewSchema, "404": ErrorSchema})
-def put_aluguel(path: AluguelPutSchema):
+def put_aluguel(path: AluguelPutSchema, form: AluguelPostSchema):
 
-    json = request.json
-
-    id_veiculo = json.get('id_veiculo')
-    data_inicio = datetime.strptime(json.get('data_inicio'),'%Y-%m-%d').date()
-    data_termino = datetime.strptime(json.get('data_termino'),'%Y-%m-%d').date()
+    id_veiculo = form.id_veiculo
+    data_inicio = form.data_inicio
+    data_termino = form.data_termino
 
     session = Session()
     veiculo = session.get(Veiculo, id_veiculo)
 
     aluguel = Aluguel(
         id = path.id,
-        id_veiculo = json.get('id_veiculo'),
+        id_veiculo = form.id_veiculo,
         data_inicio = data_inicio,
         data_termino = data_termino,
         valor = veiculo.valor_diaria * ((data_termino - data_inicio).days + 1),
