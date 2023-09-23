@@ -5,7 +5,7 @@ from flask_openapi3 import OpenAPI, Info, Tag
 from logger import logger
 from sqlalchemy import select, update
 
-from model import Session, Aluguel, Veiculo
+from model import Session, Aluguel, Cliente, Veiculo
 from schemas import *
 
 info = Info(title="API do Moove-se", version="1.0.0")
@@ -16,6 +16,7 @@ CORS(app)
 # definindo tags
 home_tag = Tag(name="Documentação", description="Seleção de documentação: Swagger, Redoc ou RapiDoc")
 alugueis_tag = Tag(name="Aluguel", description="Adição, visualização e remoção de aluguéis à base")
+clientes_tag = Tag(name="Cliente", description="Adição, visualização e remoção de clientes à base")
 veiculos_tag = Tag(name="Veiculo", description="Visualização de veículos à base")
 
 
@@ -156,6 +157,60 @@ def add_aluguel(form: AluguelPostSchema):
         logger.debug("Aluguel incluído com sucesso!")
         
         return show_aluguel(aluguel), 200
+
+    except Exception as e:
+        logger.warning(f"Erro ao adicionar um aluguel, {e}")
+        return {"message": e.__traceback__}, 400
+
+
+@app.post('/cliente',
+          tags=[clientes_tag],
+          responses={"200": ClienteViewSchema, "404": ErrorSchema})
+def add_cliente(form: ClientePostSchema):
+    
+    try:
+
+        print("Hello World") 
+
+        logger.debug("Incluindo um aluguel")
+
+        #nome = form.nome
+        # cpf = form.cpf
+        # cep_endereco = form.cpf
+        # cep_numero = form.cep_numero
+        # cep_complemento = form.cep_complemento
+
+        cliente = Cliente(
+            nome = "Edu"
+            # id = None,
+            # id_veiculo = form.id_veiculo,
+            # data_inicio = data_inicio,
+            # data_termino = data_termino,
+            # valor = veiculo.valor_diaria * ((data_termino - data_inicio).days + 1),
+            # veiculo = None
+        )
+
+        # cliente = Cliente(
+        #     id = None,
+        #     id_veiculo = form.id_veiculo,
+        #     data_inicio = data_inicio,
+        #     data_termino = data_termino,
+        #     valor = veiculo.valor_diaria * ((data_termino - data_inicio).days + 1),
+        #     veiculo = None
+        # )
+
+        # logger.debug("Incluindo um aluguel")
+        
+        # session.add(aluguel)
+        # session.commit()
+
+        # veiculo = session.get(Veiculo, aluguel.id_veiculo)
+
+        # aluguel.veiculo = veiculo
+
+        # logger.debug("Aluguel incluído com sucesso!")
+        
+        return show_cliente(cliente), 200
 
     except Exception as e:
         logger.warning(f"Erro ao adicionar um aluguel, {e}")

@@ -6,6 +6,7 @@ import os
 # importando os elementos definidos no modelo
 from model.base import Base
 from model.aluguel import Aluguel
+from model.cliente import Cliente
 from model.veiculo import Veiculo
 
 db_path = "database/"
