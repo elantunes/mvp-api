@@ -170,50 +170,28 @@ def add_cliente(form: ClientePostSchema):
     
     try:
 
-        print("Hello World") 
-
-        logger.debug("Incluindo um aluguel")
-
-        #nome = form.nome
-        # cpf = form.cpf
-        # cep_endereco = form.cpf
-        # cep_numero = form.cep_numero
-        # cep_complemento = form.cep_complemento
+        logger.debug("Incluindo um cliente")
 
         cliente = Cliente(
-            nome = "Edu"
-            # id = None,
-            # id_veiculo = form.id_veiculo,
-            # data_inicio = data_inicio,
-            # data_termino = data_termino,
-            # valor = veiculo.valor_diaria * ((data_termino - data_inicio).days + 1),
-            # veiculo = None
+            nome = form.nome,
+            cpf = form.cpf,
+            cep_endereco = form.cep_endereco,
+            numero_endereco = form.numero_endereco,
+            complemento_endereco = form.complemento_endereco
         )
 
-        # cliente = Cliente(
-        #     id = None,
-        #     id_veiculo = form.id_veiculo,
-        #     data_inicio = data_inicio,
-        #     data_termino = data_termino,
-        #     valor = veiculo.valor_diaria * ((data_termino - data_inicio).days + 1),
-        #     veiculo = None
-        # )
-
-        # logger.debug("Incluindo um aluguel")
+        logger.debug("Incluindo um aluguel")
         
-        # session.add(aluguel)
-        # session.commit()
+        session = Session()
+        session.add(cliente)
+        session.commit()
 
-        # veiculo = session.get(Veiculo, aluguel.id_veiculo)
-
-        # aluguel.veiculo = veiculo
-
-        # logger.debug("Aluguel incluído com sucesso!")
+        logger.debug("Cliente incluído com sucesso!")
         
         return show_cliente(cliente), 200
 
     except Exception as e:
-        logger.warning(f"Erro ao adicionar um aluguel, {e}")
+        logger.error(f"Erro ao adicionar um cliente, {e}")
         return {"message": e.__traceback__}, 400
 
 # PUT
@@ -293,3 +271,5 @@ def del_aluguel(path: AluguelDeleteSchema):
         error_msg = "Aluguel não encontrado na base"
         logger.warning(f"Erro ao deletar aluguel #'{path.id}', {error_msg}")
         return {"message": error_msg}, 404
+
+app.run(debug=True)
