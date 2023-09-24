@@ -16,6 +16,7 @@ class AluguelGetSchema(BaseModel):
 class AluguelPostSchema(BaseModel):
     """ Define como um novo aluguel a ser inserido deve ser representado.
     """
+    id_cliente: int
     id_veiculo: int
     data_inicio: datetime
     data_termino: datetime
@@ -77,6 +78,12 @@ def show_aluguel(aluguel: Aluguel):
         'data_inicio': aluguel.data_inicio,
         'data_termino': aluguel.data_termino,
         'valor': aluguel.valor,
+        'cliente' : {
+            'id': aluguel.cliente.id,
+            'cpf' : aluguel.cliente.cpf,
+            'nome' : aluguel.cliente.nome,
+
+        },
         'veiculo' : { 
             'id': aluguel.veiculo.id_veiculo,
             'modelo' : aluguel.veiculo.modelo,

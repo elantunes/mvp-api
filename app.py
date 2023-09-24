@@ -1,13 +1,14 @@
-from flask import redirect
+from flask import redirect, request
 from flask_cors import CORS
 from flask_openapi3 import OpenAPI, Info, Tag
+from pydantic import BaseModel
 from logger import logger
 from sqlalchemy import select, update
 
 from model import Session, Aluguel, Cliente, Veiculo
 from schemas import *
 
-info = Info(title="API do Moove-se", version="1.0.0")
+info = Info(title="API da Moove-se", version="1.0.0")
 app = OpenAPI(__name__, info=info)
 
 CORS(app)
@@ -37,54 +38,70 @@ def get_alugueis():
     """Faz a busca por todos os aluguéis cadastrados
        Retorna uma representação da listagem de aluguéis.
     """
-    logger.debug("Coletando aluguéis")
 
-    session = Session()
+    try:
 
-    stmt = select(Aluguel, Veiculo).join(Veiculo)
+        logger.debug("Coletando Aluguéis")
 
-    print(stmt)
+        session = Session()
 
-    alugueis_e_veiculos = session.execute(stmt).fetchall()
+        stmt = select(Aluguel, Veiculo, Cliente).join(Veiculo).join(Cliente)
 
-    alugueis = []
+        print(stmt)
 
-    for row in alugueis_e_veiculos:
-        aluguel = row[0]
-        veiculo = row[1]
-        aluguel.veiculo = veiculo
-        alugueis.append(aluguel)
+        alugueis_e_veiculos_e_clientes = session.execute(stmt).fetchall()
 
-    if not alugueis:
-        return {"alugueis": []}, 200
-    else:
-        logger.debug(f"%d aluguéis encontrados" % len(alugueis))
-        print(alugueis)
-        return show_alugueis(alugueis), 200
+        alugueis = []
+
+        for row in alugueis_e_veiculos_e_clientes:
+            aluguel = row[0]
+            veiculo = row[1]
+            cliente = row[2]
+            aluguel.cliente = cliente
+            aluguel.veiculo = veiculo
+            alugueis.append(aluguel)
+
+        if not alugueis:
+            return {"alugueis": []}, 200
+        else:
+            logger.debug(f"%d Aluguéis encontrados" % len(alugueis))
+            print(alugueis)
+            return show_alugueis(alugueis), 200
+
+    except Exception as e:
+        logger.warning(f"Erro ao obter os Alugueis, {e.__traceback__}")
+        return {"message": e.__traceback__}, 500
 
 
 @app.get('/aluguel/<int:id>',
          tags=[alugueis_tag],
-         responses={"202": AluguelViewSchema, "404": ErrorSchema})
+         responses={"200": AluguelViewSchema, "404": ErrorSchema})
 def get_aluguel(path: AluguelGetSchema):
-    """Faz a busca pelo aluguel com o ID informado
-       Retorna uma representação da um aluguel.
+    """Faz a busca pelo Aluguel com o ID informado
+       Retorna uma representação da um Aluguel.
     """
 
     try:
-        logger.debug(f"Buscando o aluguel #{path.id}")
 
-        stmt = select(Aluguel, Veiculo). \
-               where(Aluguel.id == path.id).join(Veiculo)
+        logger.debug(f"Buscando o Aluguel #{path.id}")
+
+        stmt = \
+            select(Aluguel, Veiculo, Cliente). \
+            where(Aluguel.id == path.id). \
+            join(Veiculo). \
+            join(Cliente)
+
         print(stmt)        
 
         session = Session()
-        alugueis_e_veiculos = session.execute(stmt).fetchall()
+        alugueis_e_veiculos_e_clientes = session.execute(stmt).fetchall()
         alugueis = []
 
-        for row in alugueis_e_veiculos:
+        for row in alugueis_e_veiculos_e_clientes:
             aluguel = row[0]
             veiculo = row[1]
+            cliente = row[2]
+            aluguel.cliente = cliente
             aluguel.veiculo = veiculo
             alugueis.append(aluguel)
 
@@ -94,12 +111,44 @@ def get_aluguel(path: AluguelGetSchema):
             return show_aluguel(aluguel), 200
         else:
             error_msg = "Aluguel não encontrado na base"
-            logger.warning(f"Erro ao buscar o aluguel #'{path.id}', {error_msg}")
-            return {"message": error_msg}, 404
+            logger.warning(f"Erro ao buscar o Aluguel #'{path.id}', {error_msg}")
+            return {"message": error_msg}, 200
 
     except Exception as e:
-        logger.warning(f"Erro ao obter o aluguel #'{path.id}', {e.__traceback__}")
-        return {"message": e.__traceback__}, 400
+        logger.warning(f"Erro ao obter o Aluguel #'{path.id}', {e.__traceback__}")
+        return {"message": e.__traceback__}, 500
+
+
+@app.get('/cliente',
+         tags=[clientes_tag],
+         responses={"202": ClienteViewSchema, "404": ErrorSchema})
+def get_cliente_busca_por_cpf(header: ClienteBuscaPorCpfHeaderSchema):
+    """Faz a busca de Cliente a partir do CPF
+       Retorna uma representação da um Cliente.
+    """
+
+    try:
+
+        cpf = request.headers['cpf']
+
+        logger.debug(f"Buscando o Cliente pelo CPF {cpf}")
+
+        session = Session()
+
+        cliente = session.query(Cliente).where(Cliente.cpf == cpf).first()
+
+        if cliente:
+            logger.debug(f"Cliente de CPF {cpf} encontrado")
+            print(cliente)
+            return show_cliente(cliente), 200
+        else:
+            error_msg = "Cliente não encontrado na base"
+            logger.warning(f"Erro ao buscar o Cliente de CPF '{cpf}', {error_msg}")
+            return {"erro": error_msg}, 200
+
+    except Exception as e:
+        logger.error(f"Erro ao obter o Cliente de CPF '{cpf}', {e.__traceback__}")
+        return {"erro": e.__traceback__}, 500
 
 
 @app.get('/cliente/<int:id>',
@@ -184,29 +233,29 @@ def add_aluguel(form: AluguelPostSchema):
     
     try:
 
-        id_veiculo = form.id_veiculo
-        data_inicio = form.data_inicio
-        data_termino = form.data_termino
+        logger.debug("Incluindo um aluguel")
 
-        session = Session()
-        veiculo = session.get(Veiculo, id_veiculo)
+        session = Session()      
+
+        veiculo = session.get(Veiculo, form.id_veiculo)
 
         aluguel = Aluguel(
             id = None,
+            id_cliente = form.id_cliente,
             id_veiculo = form.id_veiculo,
-            data_inicio = data_inicio,
-            data_termino = data_termino,
-            valor = veiculo.valor_diaria * ((data_termino - data_inicio).days + 1),
+            data_inicio = form.data_inicio,
+            data_termino = form.data_termino,
+            valor = veiculo.valor_diaria * ((form.data_termino - form.data_inicio).days + 1),
+            cliente = None,
             veiculo = None
         )
 
-        logger.debug("Incluindo um aluguel")
-        
         session.add(aluguel)
         session.commit()
 
-        veiculo = session.get(Veiculo, aluguel.id_veiculo)
+        cliente = session.get(Cliente, aluguel.id_cliente)
 
+        aluguel.cliente = cliente
         aluguel.veiculo = veiculo
 
         logger.debug("Aluguel incluído com sucesso!")
@@ -215,7 +264,7 @@ def add_aluguel(form: AluguelPostSchema):
 
     except Exception as e:
         logger.warning(f"Erro ao adicionar um aluguel, {e}")
-        return {"message": e.__traceback__}, 400
+        return {"message": e.__traceback__}, 500
 
 
 @app.post('/cliente',
@@ -411,6 +460,7 @@ def del_cliente(path: ClienteDeleteSchema):
     else:
         error_msg = "Cliente não encontrado na base"
         logger.warning(f"Erro ao deletar Cliente #'{path.id}', {error_msg}")
-        return {"message": error_msg}, 404
+        return {"message": error_msg}, 500
+
 
 app.run(debug=True, use_reloader=True)

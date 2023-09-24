@@ -6,6 +6,11 @@ from model import Cliente
 
 #Classes
 
+class ClienteBuscaPorCpfHeaderSchema(BaseModel):
+    """ Define o header da Busca de Cliente Por CPF.
+    """
+    cpf: int
+
 class ClienteDeleteSchema(BaseModel):
     """ Define como um remoção de Cliente deve ser representada.
     """
@@ -24,6 +29,11 @@ class ClienteGetSchema(BaseModel):
     """ Define como uma requisição de Cliente deve ser representada.
     """
     id: int
+
+class ClienteGetPorCpfSchema(BaseModel):
+    """ Define como uma requisição de Cliente por CPF deve ser representada.
+    """
+    cpf: int
 
 
 class ClientePostSchema(BaseModel): 
