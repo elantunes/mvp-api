@@ -1,5 +1,4 @@
-from datetime import datetime
-from flask import redirect, request
+from flask import redirect
 from flask_cors import CORS
 from flask_openapi3 import OpenAPI, Info, Tag
 from logger import logger
@@ -20,7 +19,10 @@ clientes_tag = Tag(name="Cliente", description="Adição, visualização e remo�
 veiculos_tag = Tag(name="Veiculo", description="Visualização de veículos à base")
 
 
+################################################################################
 # GET
+################################################################################
+
 
 @app.get('/', tags=[home_tag])
 def home():
@@ -100,6 +102,56 @@ def get_aluguel(path: AluguelGetSchema):
         return {"message": e.__traceback__}, 400
 
 
+@app.get('/cliente/<int:id>',
+         tags=[clientes_tag],
+         responses={"202": ClienteViewSchema, "404": ErrorSchema})
+def get_cliente(path: ClienteGetSchema):
+    """Faz a busca pelo Cliente com o ID informado
+       Retorna uma representação da um Cliente.
+    """
+
+    try:
+
+        logger.debug(f"Buscando o Cliente #{path.id}")
+
+        session = Session()
+
+        cliente = session.get(Cliente, path.id)
+
+        if cliente:
+            logger.debug(f"Cliente #{cliente.id} encontrado")
+            print(cliente)
+            return show_cliente(cliente), 200
+        else:
+            error_msg = "Cliente não encontrado na base"
+            logger.warning(f"Erro ao buscar o Cliente #'{path.id}', {error_msg}")
+            return {"message": error_msg}, 404
+
+    except Exception as e:
+        logger.error(f"Erro ao obter o Cliente #'{path.id}', {e.__traceback__}")
+        return {"message": e.__traceback__}, 400
+
+
+@app.get('/clientes', tags=[clientes_tag],
+         responses={"200": ListaClientesSchema, "404": ErrorSchema})
+def get_clientes():
+    """Faz a busca por todos os clientes cadastrados
+       Retorna uma representação da listagem de clientes.
+    """
+    logger.debug("Coletando clintes")
+
+    session = Session()
+
+    clientes = session.query(Cliente).order_by(Cliente.nome).all()
+
+    if not clientes:
+        return {"clientes": []}, 200
+    else:
+         logger.debug(f"%d clientes encontrados" % len(clientes))
+         print(clientes)
+         return show_clientes(clientes), 200
+    
+
 @app.get('/veiculos', tags=[veiculos_tag],
          responses={"200": ListaVeiculosSchema, "404": ErrorSchema})
 def get_veiculos():
@@ -120,7 +172,10 @@ def get_veiculos():
         return show_veiculos(veiculos), 200
 
 
+################################################################################
 # POST
+################################################################################
+
 
 @app.post('/aluguel',
           tags=[alugueis_tag],
@@ -170,18 +225,21 @@ def add_cliente(form: ClientePostSchema):
     
     try:
 
-        logger.debug("Incluindo um cliente")
+        logger.debug("Incluindo um Cliente")
 
         cliente = Cliente(
+            id = None,
             nome = form.nome,
             cpf = form.cpf,
             cep_endereco = form.cep_endereco,
+            logradouro_endereco = form.logradouro_endereco,
             numero_endereco = form.numero_endereco,
-            complemento_endereco = form.complemento_endereco
+            complemento_endereco = form.complemento_endereco,
+            localidade_endereco = form.localidade_endereco,
+            cidade_endereco = form.cidade_endereco,
+            uf_endereco = form.uf_endereco
         )
 
-        logger.debug("Incluindo um aluguel")
-        
         session = Session()
         session.add(cliente)
         session.commit()
@@ -191,10 +249,14 @@ def add_cliente(form: ClientePostSchema):
         return show_cliente(cliente), 200
 
     except Exception as e:
-        logger.error(f"Erro ao adicionar um cliente, {e}")
+        logger.error(f"Erro ao adicionar um Cliente, {e}")
         return {"message": e.__traceback__}, 400
 
+
+################################################################################
 # PUT
+################################################################################
+
 
 @app.put('/aluguel/<int:id>',
          tags=[alugueis_tag],
@@ -218,7 +280,8 @@ def put_aluguel(path: AluguelPutSchema, form: AluguelPostSchema):
     )
 
     try:
-        logger.debug("Alterando um aluguel")
+
+        logger.debug("Alterando um Aluguel")
         
         session = Session()
        
@@ -244,22 +307,78 @@ def put_aluguel(path: AluguelPutSchema, form: AluguelPostSchema):
         return show_aluguel(aluguel), 200
 
     except Exception as e:
-        error_msg = "Não foi possível alterar o aluguel"
-        logger.warning(f"Erro ao alterar o aluguel #'{path.id}', {error_msg}")
+        error_msg = "Não foi possível alterar o Aluguel"
+        logger.warning(f"Erro ao alterar o Aluguel #'{path.id}', {error_msg}")
         return {"message": e.__traceback__}, 400
 
 
+@app.put('/cliente/<int:id>',
+         tags=[clientes_tag],
+         responses={"200": ClienteViewSchema, "404": ErrorSchema})
+def put_cliente(path: ClientePutSchema, form: ClientePostSchema):
+
+    try:
+
+        logger.debug("Alterando um Aluguel")
+
+        cliente = Cliente(
+            id = path.id,
+            nome = form.nome,
+            cpf = form.cpf,
+            cep_endereco = form.cep_endereco,
+            logradouro_endereco = form.logradouro_endereco,
+            numero_endereco = form.numero_endereco,
+            complemento_endereco = form.complemento_endereco,
+            localidade_endereco = form.localidade_endereco,
+            cidade_endereco = form.cidade_endereco,
+            uf_endereco = form.uf_endereco
+        )
+
+        stmt = \
+            update(Cliente) \
+            .where(Cliente.id == cliente.id) \
+            .values(
+                nome = cliente.nome,
+                cpf = cliente.cpf,
+                cep_endereco = cliente.cep_endereco,
+                logradouro_endereco = cliente.logradouro_endereco,
+                numero_endereco = cliente.numero_endereco,
+                complemento_endereco = cliente.complemento_endereco,
+                localidade_endereco = cliente.localidade_endereco,
+                cidade_endereco = cliente.cidade_endereco,
+                uf_endereco = cliente.uf_endereco
+            )
+
+        print(stmt)
+
+        session = Session()
+        session.execute(stmt)
+        session.commit()
+
+        logger.debug("Cliente alterado com sucesso!")
+        
+        return show_cliente(cliente), 200
+
+    except Exception as e:
+        error_msg = "Não foi possível alterar o Cliente"
+        logger.error(f"Erro ao alterar o Cliente #'{path.id}', {error_msg}")
+        return {"message": e.__traceback__}, 400
+
+
+################################################################################
 # DELETE
+################################################################################
+
 
 @app.delete('/aluguel/<int:id>',
             tags=[alugueis_tag],
             responses={"202": AluguelDeleteViewSchema, "404": ErrorSchema})
 def del_aluguel(path: AluguelDeleteSchema):
-    """Exclui um aluguel à Base de Dados
+    """Exclui um Aluguel à Base de Dados
        Retorna uma mensagem de confirmação de remoção.
     """
 
-    logger.debug("Excluindo um aluguel")
+    logger.debug("Excluindo um Aluguel")
 
     session = Session()
     count = session.query(Aluguel).filter(Aluguel.id == path.id).delete()
@@ -269,7 +388,29 @@ def del_aluguel(path: AluguelDeleteSchema):
         return {"message": "Aluguel removido", "id": path.id}
     else:
         error_msg = "Aluguel não encontrado na base"
-        logger.warning(f"Erro ao deletar aluguel #'{path.id}', {error_msg}")
+        logger.warning(f"Erro ao deletar Aluguel #'{path.id}', {error_msg}")
+        return {"message": error_msg}, 404
+    
+
+@app.delete('/cliente/<int:id>',
+            tags=[clientes_tag],
+            responses={"202": ClienteDeleteViewSchema, "404": ErrorSchema})
+def del_cliente(path: ClienteDeleteSchema):
+    """Exclui um Cliente à Base de Dados
+       Retorna uma mensagem de confirmação de remoção.
+    """
+
+    logger.debug("Excluindo um Cliente")
+
+    session = Session()
+    count = session.query(Cliente).filter(Cliente.id == path.id).delete()
+    session.commit()
+
+    if count:
+        return {"message": "Cliente removido", "id": path.id}
+    else:
+        error_msg = "Cliente não encontrado na base"
+        logger.warning(f"Erro ao deletar Cliente #'{path.id}', {error_msg}")
         return {"message": error_msg}, 404
 
-app.run(debug=True)
+app.run(debug=True, use_reloader=True)

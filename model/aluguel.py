@@ -1,8 +1,8 @@
 from datetime import date
 from sqlalchemy import Column, Date, DateTime, Float, ForeignKey, Integer, Table
 from sqlalchemy.sql import func
-from model.veiculo import Veiculo
 
+from model.veiculo import Veiculo
 from model import Base
 
 
@@ -16,7 +16,7 @@ class Aluguel(Base):
         Column('data_inclusao', DateTime, server_default=func.now()),
         sqlite_autoincrement=True)
 
-    def __init__(self, id: int, id_veiculo:int, data_inicio:date, data_termino:date, veiculo:Veiculo, valor:float):
+    def __init__(self, id: int, id_veiculo: int, data_inicio: date, data_termino: date, veiculo: Veiculo, valor: float):
         """
         Instancia um Aluguel
 

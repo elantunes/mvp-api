@@ -4,6 +4,7 @@ from typing import List
 
 from model import Aluguel
 
+
 #Classes
 
 class AluguelGetSchema(BaseModel):
@@ -82,6 +83,7 @@ def show_aluguel(aluguel: Aluguel):
             'valor_diaria': aluguel.veiculo.valor_diaria
         }
     }
+
 
 def show_alugueis(alugueis: List[Aluguel]):
     """ Retorna uma representação de uma lista de aluguéis seguindo o schema definido em
