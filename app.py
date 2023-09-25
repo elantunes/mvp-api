@@ -1,7 +1,6 @@
 from flask import redirect, request
 from flask_cors import CORS
 from flask_openapi3 import OpenAPI, Info, Tag
-from pydantic import BaseModel
 from logger import logger
 from sqlalchemy import select, update
 
@@ -229,13 +228,13 @@ def get_veiculos():
 @app.post('/aluguel',
           tags=[alugueis_tag],
           responses={"200": AluguelViewSchema, "404": ErrorSchema})
-def add_aluguel(form: AluguelPostSchema):
+def add_aluguel(form: AluguelPostFormSchema):
     
     try:
 
         logger.debug("Incluindo um aluguel")
 
-        session = Session()      
+        session = Session()
 
         veiculo = session.get(Veiculo, form.id_veiculo)
 
@@ -310,28 +309,30 @@ def add_cliente(form: ClientePostSchema):
 @app.put('/aluguel/<int:id>',
          tags=[alugueis_tag],
          responses={"200": AluguelViewSchema, "404": ErrorSchema})
-def put_aluguel(path: AluguelPutSchema, form: AluguelPostSchema):
-
-    id_veiculo = form.id_veiculo
-    data_inicio = form.data_inicio
-    data_termino = form.data_termino
-
-    session = Session()
-    veiculo = session.get(Veiculo, id_veiculo)
-
-    aluguel = Aluguel(
-        id = path.id,
-        id_veiculo = form.id_veiculo,
-        data_inicio = data_inicio,
-        data_termino = data_termino,
-        valor = veiculo.valor_diaria * ((data_termino - data_inicio).days + 1),
-        veiculo= None
-    )
+def put_aluguel(path: AluguelPutPathSchema, form: AluguelPutFormSchema):
 
     try:
 
         logger.debug("Alterando um Aluguel")
-        
+
+        id_veiculo = form.id_veiculo
+        data_inicio = form.data_inicio
+        data_termino = form.data_termino
+
+        session = Session()
+        veiculo = session.get(Veiculo, id_veiculo)
+
+        aluguel = Aluguel(
+            id = path.id,
+            id_cliente = None,
+            id_veiculo = form.id_veiculo,
+            data_inicio = data_inicio,
+            data_termino = data_termino,
+            valor = veiculo.valor_diaria * ((data_termino - data_inicio).days + 1),
+            cliente = None,
+            veiculo= None
+        )
+
         session = Session()
        
         stmt = update(Aluguel) \
@@ -344,11 +345,12 @@ def put_aluguel(path: AluguelPutSchema, form: AluguelPostSchema):
 
         print(stmt)
         session.execute(stmt)
-
         session.commit()
 
-        veiculo = session.get(Veiculo, aluguel.id_veiculo)
+        cliente = session.query(Cliente).join(Aluguel).where(Aluguel.id_cliente == Cliente.id).first()
 
+        aluguel.id_cliente = cliente.id
+        aluguel.cliente = cliente
         aluguel.veiculo = veiculo
 
         logger.debug("Aluguel alterado com sucesso!")

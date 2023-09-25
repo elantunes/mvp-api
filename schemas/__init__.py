@@ -1,5 +1,7 @@
-from schemas.aluguel import Aluguel, AluguelViewSchema, AluguelDeleteViewSchema,  AluguelRequestSchema, \
-                            AluguelGetSchema, AluguelPostSchema, AluguelPutSchema, AluguelDeleteSchema, \
+from schemas.aluguel import Aluguel, AluguelViewSchema, AluguelRequestSchema, \
+                            AluguelGetSchema, AluguelPostFormSchema, \
+                            AluguelPutFormSchema, AluguelPutPathSchema, \
+                            AluguelDeleteSchema, AluguelDeleteViewSchema, \
                             ListaAlugueisSchema, \
                             show_aluguel, show_alugueis
 

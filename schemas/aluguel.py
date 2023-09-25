@@ -13,7 +13,7 @@ class AluguelGetSchema(BaseModel):
     id: int
 
 
-class AluguelPostSchema(BaseModel):
+class AluguelPostFormSchema(BaseModel):
     """ Define como um novo aluguel a ser inserido deve ser representado.
     """
     id_cliente: int
@@ -22,7 +22,14 @@ class AluguelPostSchema(BaseModel):
     data_termino: datetime
 
 
-class AluguelPutSchema(BaseModel):
+class AluguelPutFormSchema(BaseModel):
+    """ Define como deve-se fornecer os dados pra atualizar um Aluguel.
+    """
+    id_veiculo: int
+    data_inicio: datetime
+    data_termino: datetime
+
+class AluguelPutPathSchema(BaseModel):
     """ Define como um remoção de aluguel deve ser representada.
     """
     id: int
