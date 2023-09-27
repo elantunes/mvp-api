@@ -1,32 +1,40 @@
+<img src="img/logo.png" alt="Move-se logo" title="Moove-se" align="right" height="60" />
+
 # API da Moove-se
 
-Esta é uma **API da empresa fictícia Moove-se** para o **MVP** da Disciplina **Desenvolvimento Full Stack Básico** do curso de **Pós-graduação em Engenharia de Software** da **PUC-Rio**.
+Esta é uma **API da empresa fictícia Moove-se** para o **MVP** do curso de **Pós-graduação em Engenharia de Software** da **PUC-Rio**.
 
----
-## Como instalar e executar a API
+## Conteúdo
 
-Será necessário ter todas as libs python listadas no `requirements.txt` instaladas.
-Após clonar o repositório, é necessário ir ao diretório raiz, pelo terminal, para poder executar os comandos descritos abaixo.
+ * [Pré-requisitos](#pré-requisitos)
+ * [Instalação](#instalação)
+ * [Como Usar](#como-usar)
 
-> É fortemente indicado o uso de ambientes virtuais do tipo [virtualenv](https://virtualenv.pypa.io/en/latest/installation.html).
+## Pré-requisitos
 
-```
-(env)$ pip install -r requirements.txt
-```
+:warning: Uma funcionalidade desta API utiliza recursos da API de Anúncios.
 
-Este comando instala as dependências/bibliotecas, descritas no arquivo `requirements.txt`.
+Recomenda-se antes de continuares que visites o link do projeto abaixo e que siga as instruções do arquivo `README.md` do respectivo projeto.
 
-Para executar a API  basta executar:
+| Descrição | Link |
+| --- | --- |
+| API de Anúncios | https://github.com/elantunes/mvp-api-anuncios |
 
-```
-(env)$ flask run --host 0.0.0.0 --port 5000
-```
+## Instalação
 
-Em modo de desenvolvimento é recomendado executar utilizando o parâmetro reload, que reiniciará o servidor
-automaticamente após uma mudança no código fonte. 
+1) Baixe o Repositório.
+2) Navegue até a pasta do projeto como no exemplo abaixo:
 
-```
-(env)$ flask run --host 0.0.0.0 --port 5000 --reload
-```
+    ```powershell
+    cd ./mvp-api
+    ```
 
-Abra o [http://localhost:5000](http://localhost:5000) no navegador para verificar o status da API em execução.
+3) Certifique-se que o serviço do Docker esteja sendo executado e execute o comando abaixo:
+
+    ```powershell
+    docker compose up --build -d
+    ```
+
+## Como Usar
+
+Acesse no navegador a URL http://localhost:5001 para verificar o status da API em execução. :rocket:

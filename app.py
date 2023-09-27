@@ -465,4 +465,4 @@ def del_cliente(path: ClienteDeleteSchema):
         return {"message": error_msg}, 500
 
 
-app.run(debug=True, use_reloader=True)
+#app.run(debug=False, use_reloader=True)
